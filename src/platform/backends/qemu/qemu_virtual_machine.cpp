@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2019 Canonical, Ltd.
+ * Copyright (C) 2017-2020 Canonical, Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -359,7 +359,9 @@ void mp::QemuVirtualMachine::on_shutdown()
     std::unique_lock<decltype(state_mutex)> lock{state_mutex};
     if (state == State::starting)
     {
-        saved_error_msg = fmt::format("{}: shutdown called while starting", vm_name);
+        if (!saved_error_msg.empty() && saved_error_msg.back() != '\n')
+            saved_error_msg.append("\n");
+        saved_error_msg.append(fmt::format("{}: shutdown called while starting", vm_name));
         state_wait.wait(lock, [this] { return state == State::off; });
     }
     else
